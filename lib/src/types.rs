@@ -1,28 +1,39 @@
+use crate::crypto::{PublicKey, Signature};
+use crate::sha256::Hash;
+use crate::util::MerkleRoot;
 use crate::U256;
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Blockchain {
     pub blocks: Vec<Block>,
 }
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Block{
     pub header: BlockHeader,
     pub transactions: Vec<Transaction>,
 }
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BlockHeader {
-    pub timestamp: u64,
+    pub timestamp: DateTime<Utc>,
     pub nonce: u64,
-    pub prev_block_hash: [u8; 32],
-    pub merkle_root: [u8; 32],
+    pub prev_block_hash: Hash,
+    pub merkle_root: MerkleRoot,
     pub target: U256,
 }
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TransactionInput {
-    pub prev_transaction_output_hash: [u8; 32],
-    pub signature: [u8; 64],
+    pub prev_transaction_output_hash: Hash,
+    pub signature: Signature,
 }
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct TransactionOutput{
     pub value: u64,
     pub unique_id: Uuid,
-    pub pubkey: [u8; 33],
+    pub pubkey: PublicKey,
 }
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Transaction {
     pub inputs: Vec<TransactionInput>,
     pub outputs: Vec<TransactionOutput>,
@@ -42,17 +53,23 @@ impl Block {
     pub fn new( header: BlockHeader, transactions: Vec<Transaction>) -> Self {
         Block { header, transactions }
     }
-    pub fn hash(&self) -> ! {
-        unimplemented!()
+    pub fn hash(&self) -> Hash {
+        Hash::hash(self)
     }
 }
 
 impl BlockHeader {
-    pub fn new( timestamp: u64, nonce: u64, prev_block_hash: [u8; 32], merkle_root: [u8; 32], target: U256,) -> Self {
+    pub fn new( timestamp: DateTime<Utc>, nonce: u64, prev_block_hash: Hash, merkle_root: MerkleRoot, target: U256,) -> Self {
             BlockHeader { timestamp, nonce, prev_block_hash, merkle_root, target,}
     }
-    pub fn hash(&self) -> ! {
-        unimplemented!()
+    pub fn hash(&self) -> Hash {
+        Hash::hash(self)
+    }
+}
+
+impl TransactionOutput {
+    pub fn hash(&self) -> Hash {
+        Hash::hash(self)
     }
 }
 
@@ -60,7 +77,7 @@ impl Transaction {
     pub fn new(inputs: Vec<TransactionInput>, outputs: Vec<TransactionOutput>) -> Self {
         Transaction { inputs, outputs }
     }
-    pub fn hash(&self) -> ! {
-        unimplemented!()
+    pub fn hash(&self) -> Hash {
+        Hash::hash(self)
     }
 }
